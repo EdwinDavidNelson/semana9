@@ -1,0 +1,41 @@
+~~ test_functions.bafle
+~~ Tests: function declaration, function calls, shadowing, return values
+
+~~ === Simple function without parameters ===
+func saludar() -> bafle_str {
+    retorna "Hola desde la funcion!";
+}
+
+~~ === Function that returns an integer calculation ===
+func cuadrado(bafle_int n) -> bafle_int {
+    set resultado como bafle_int = n * n;
+    retorna resultado;
+}
+
+~~ === Function with two parameters ===
+func sumar(bafle_int a, bafle_int b) -> bafle_int {
+    retorna a + b;
+}
+
+~~ === Shadowing demo ===
+~~ x in global scope
+set x como bafle_int = 100;
+show x;   ~~ should print 100
+
+func inner() -> bafle_int {
+    ~~ x here shadows the global x
+    set x como bafle_int = 999;
+    retorna x;
+}
+
+show inner();  ~~ should print 999
+show x;        ~~ should still print 100  (global x unchanged)
+
+~~ === Call functions ===
+show saludar();
+show cuadrado(7);
+show sumar(10, 32);
+
+~~ === Variables after function calls ===
+set total como bafle_int = sumar(50, 50);
+show total;

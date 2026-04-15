@@ -1,0 +1,40 @@
+~~ ============================================================
+~~ demo.bafle  -  Programa de demostracion de Backfile
+~~ ============================================================
+
+~~ 1. Enteros
+set edad    como bafle_int   = 21;
+set puntaje como bafle_int   = 100 + 50;
+set bonus   como bafle_int   = puntaje - 30;
+
+~~ 2. Punto flotante
+set pi      como bafle_float = 3.14;
+set area    como bafle_float = pi * 2;
+
+~~ 3. Caracter
+set nota    como bafle_char  = 'A';
+
+~~ 4. Cadena de texto
+set nombre  como bafle_str   = "Backfile";
+
+~~ 5. Booleano (1 = verdadero, 0 = falso)
+set activo  como bafle_bool  = 1;
+set listo   como bafle_bool  = 0;
+
+~~ 6. Impresion de variables
+show edad;
+show puntaje;
+show bonus;
+show pi;
+show area;
+show nota;
+show nombre;
+show activo;
+show listo;
+
+~~ 7. Literal directo
+show "Backfile compilador OK";
+
+~~ 8. Expresion con parentesis
+set x como bafle_int = (10 + 5) * 2;
+show x;
