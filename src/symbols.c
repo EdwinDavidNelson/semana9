@@ -28,12 +28,11 @@ void scope_pop(Scope *scope) {
 /* ── Create a variable in the current scope (shadowing is implicit:
        a new entry hides any same-named entry in outer scopes) ── */
 SymbolEntry *symbol_create(Scope *scope, const char *name, DataType type) {
-    SymbolEntry *entry = (SymbolEntry *)malloc(sizeof(SymbolEntry));
-    entry->identifier   = strdup(name);
-    entry->data_type    = type;
-    entry->data.i_value = 0;
-    entry->next         = scope->entries;
-    scope->entries      = entry;
+    SymbolEntry *entry = (SymbolEntry *)calloc(1, sizeof(SymbolEntry)); /* calloc zeros all fields including s_value */
+    entry->identifier  = strdup(name);
+    entry->data_type   = type;
+    entry->next        = scope->entries;
+    scope->entries     = entry;
     return entry;
 }
 

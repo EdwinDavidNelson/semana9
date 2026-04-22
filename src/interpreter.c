@@ -135,6 +135,25 @@ static Value eval_expr(Interpreter *interp, ASTNode *node) {
             return make_float(result);
         }
 
+        /* ── Comparisons ── */
+        case NODE_COMPARE: {
+            Value lv = eval_expr(interp, node->cmp.left);
+            Value rv = eval_expr(interp, node->cmp.right);
+            double l = as_double(lv);
+            double r = as_double(rv);
+            int result;
+            switch (node->cmp.op) {
+                case CMP_EQ:  result = (l == r); break;
+                case CMP_NEQ: result = (l != r); break;
+                case CMP_LT:  result = (l <  r); break;
+                case CMP_GT:  result = (l >  r); break;
+                case CMP_LTE: result = (l <= r); break;
+                case CMP_GTE: result = (l >= r); break;
+                default:      result = 0;         break;
+            }
+            return make_bool(result);
+        }
+
         /* ── Function call ── */
         case NODE_FUNC_CALL: {
             FuncRecord *rec = find_function(interp, node->func_call.name);
@@ -175,7 +194,13 @@ static Value eval_expr(Interpreter *interp, ASTNode *node) {
             /* Execute body */
             exec_block(interp, rec->body);
 
-            Value ret = interp->returning ? interp->return_val : make_void();
+            /* Copy return value BEFORE scope_pop destroys local strings */
+            Value ret = make_void();
+            if (interp->returning) {
+                ret = interp->return_val;
+                if (ret.type == TYPE_STRING && ret.s_val)
+                    ret.s_val = strdup(ret.s_val); /* own the string before scope dies */
+            }
             interp->returning = 0;
 
             /* Pop function scope, restore caller scope */
@@ -200,14 +225,23 @@ static void exec_stmt(Interpreter *interp, ASTNode *node) {
 
     switch (node->kind) {
 
-        /* ── Variable declaration with shadowing ── */
+        /* ── Variable declaration with shadowing ──
+           If the variable already exists in any enclosing scope, UPDATE it
+           instead of creating a new shadow. This allows mutation inside loops.
+           To force a new shadow, use a truly new name.                        */
         case NODE_VAR_DECL: {
             Value v = eval_expr(interp, node->var_decl.init);
-            /* shadow_create: always create a new entry in the current frame */
-            SymbolEntry *e = symbol_create(interp->scope,
-                                           node->var_decl.name,
-                                           node->var_decl.type);
-            value_to_entry(e, v);
+            SymbolEntry *existing = symbol_lookup(interp->scope, node->var_decl.name);
+            if (existing) {
+                /* Mutate the existing binding (nearest scope) */
+                value_to_entry(existing, v);
+            } else {
+                /* Truly new variable — create in current frame */
+                SymbolEntry *e = symbol_create(interp->scope,
+                                               node->var_decl.name,
+                                               node->var_decl.type);
+                value_to_entry(e, v);
+            }
             if (v.type == TYPE_STRING && v.s_val) free(v.s_val);
             break;
         }
@@ -261,6 +295,32 @@ static void exec_stmt(Interpreter *interp, ASTNode *node) {
         case NODE_FUNC_CALL:
             eval_expr(interp, node);
             break;
+
+        /* ── If / if-else ── */
+        case NODE_IF: {
+            Value cond = eval_expr(interp, node->if_stmt.cond);
+            int   is_true = (cond.type == TYPE_BOOL)  ? cond.b_val :
+                            (cond.type == TYPE_INT)    ? cond.i_val :
+                            (cond.type == TYPE_FLOAT)  ? (cond.f_val != 0.0) : 0;
+            if (is_true)
+                exec_block(interp, node->if_stmt.then_block);
+            else if (node->if_stmt.else_block)
+                exec_block(interp, node->if_stmt.else_block);
+            break;
+        }
+
+        /* ── While loop ── */
+        case NODE_WHILE: {
+            while (!interp->returning) {
+                Value cond = eval_expr(interp, node->while_stmt.cond);
+                int is_true = (cond.type == TYPE_BOOL)  ? cond.b_val :
+                              (cond.type == TYPE_INT)    ? cond.i_val :
+                              (cond.type == TYPE_FLOAT)  ? (cond.f_val != 0.0) : 0;
+                if (!is_true) break;
+                exec_block(interp, node->while_stmt.body);
+            }
+            break;
+        }
 
         default:
             fprintf(stderr, "exec_stmt: unhandled node kind %d\n", node->kind);

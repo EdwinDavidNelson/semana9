@@ -1,0 +1,63 @@
+~~ ============================================================
+~~ test_completo.bafle
+~~ ============================================================
+
+~~ 1. Variables y tipos basicos
+set edad    como bafle_int   = 21;
+set pi      como bafle_float = 3.14;
+set letra   como bafle_char  = 'A';
+set nombre  como bafle_str   = "Backfile";
+set activo  como bafle_bool  = 1;
+
+show edad;
+show pi;
+show letra;
+show nombre;
+show activo;
+
+~~ 2. if / sino
+set x como bafle_int = 10;
+
+si (x > 5) {
+    show "x es mayor que 5";
+} sino {
+    show "x es menor o igual a 5";
+}
+
+si (x == 10) {
+    show "x vale exactamente 10";
+}
+
+~~ 3. mientras (while)
+set contador como bafle_int = 1;
+mientras (contador <= 5) {
+    show contador;
+    set contador como bafle_int = contador + 1;
+}
+
+~~ 4. Funciones
+func cuadrado(bafle_int n) -> bafle_int {
+    retorna n * n;
+}
+
+func esMayor(bafle_int a, bafle_int b) -> bafle_bool {
+    si (a > b) {
+        retorna 1;
+    } sino {
+        retorna 0;
+    }
+}
+
+show cuadrado(7);
+show esMayor(10, 3);
+show esMayor(2, 8);
+
+~~ 5. Shadowing
+set z como bafle_int = 100;
+func sombra() -> bafle_int {
+    set z como bafle_int = 999;
+    retorna z;
+}
+show z;
+show sombra();
+show z;

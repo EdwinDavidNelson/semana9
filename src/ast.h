@@ -20,15 +20,28 @@ typedef enum {
     NODE_FUNC_DECL,
     NODE_FUNC_CALL,
     NODE_RETURN,
+    NODE_IF,       /* if / if-else         */
+    NODE_WHILE,    /* while loop           */
+    NODE_COMPARE,  /* comparison operators */
 } NodeType;
 
-/* ── Binary operators ── */
+/* ── Binary arithmetic operators ── */
 typedef enum {
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
 } BinOp;
+
+/* ── Comparison operators ── */
+typedef enum {
+    CMP_EQ,   /* == */
+    CMP_NEQ,  /* != */
+    CMP_LT,   /* <  */
+    CMP_GT,   /* >  */
+    CMP_LTE,  /* <= */
+    CMP_GTE,  /* >= */
+} CmpOp;
 
 /* ── Forward declaration ── */
 typedef struct ASTNode ASTNode;
@@ -42,6 +55,7 @@ typedef struct {
 /* ── The AST node ── */
 struct ASTNode {
     NodeType kind;
+    int      line;   /* source line — set by parser for error reporting */
 
     union {
         /* NODE_PROGRAM / NODE_BLOCK */
@@ -113,6 +127,26 @@ struct ASTNode {
         struct {
             ASTNode *value; /* may be NULL */
         } ret;
+
+        /* NODE_IF */
+        struct {
+            ASTNode *cond;       /* condition expression     */
+            ASTNode *then_block; /* executed when true       */
+            ASTNode *else_block; /* may be NULL              */
+        } if_stmt;
+
+        /* NODE_WHILE */
+        struct {
+            ASTNode *cond;
+            ASTNode *body;
+        } while_stmt;
+
+        /* NODE_COMPARE */
+        struct {
+            CmpOp    op;
+            ASTNode *left;
+            ASTNode *right;
+        } cmp;
     };
 };
 
@@ -128,14 +162,17 @@ ASTNode *ast_lit_char  (char v);
 ASTNode *ast_lit_string(const char *v);
 ASTNode *ast_lit_bool  (int v);
 ASTNode *ast_binop     (BinOp op, ASTNode *l, ASTNode *r);
+ASTNode *ast_compare   (CmpOp op, ASTNode *l, ASTNode *r);
 ASTNode *ast_show_var  (ASTNode *expr);
 ASTNode *ast_show_str  (const char *s);
 ASTNode *ast_func_decl (const char *name, DataType ret_type,
                          ParamInfo *params, int param_count, ASTNode *body);
 ASTNode *ast_func_call (const char *name, ASTNode **args, int arg_count);
 ASTNode *ast_return    (ASTNode *value);
+ASTNode *ast_if        (ASTNode *cond, ASTNode *then_block, ASTNode *else_block);
+ASTNode *ast_while     (ASTNode *cond, ASTNode *body);
 
-void     ast_free(ASTNode *node);
-void     ast_print(ASTNode *node, int indent); /* optional debug printer */
+void     ast_free (ASTNode *node);
+void     ast_print(ASTNode *node, int indent);
 
 #endif /* AST_H */

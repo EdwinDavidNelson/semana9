@@ -2,7 +2,7 @@ CC      = gcc
 CFLAGS  = -Wall -Wextra -g -Isrc
 TARGET  = backfile
 
-SRCS = y.tab.c lex.yy.c src/ast.c src/symbols.c src/interpreter.c
+SRCS = y.tab.c lex.yy.c src/ast.c src/symbols.c src/interpreter.c src/semantic.c
 
 all: $(TARGET)
 
