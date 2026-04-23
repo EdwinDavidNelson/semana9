@@ -1,0 +1,80 @@
+~~ ============================================================
+~~ test_errores.bafle
+~~ Prueba de detección de errores del compilador Backfile
+~~
+~~ IMPORTANTE: Este archivo contiene errores DELIBERADOS.
+~~ El compilador DEBE detectar y reportar los siguientes errores
+~~ semánticos antes de ejecutar cualquier instrucción.
+~~
+~~ Errores esperados:
+~~   1. Variable no declarada (uso de 'fantasma')
+~~   2. Declaración duplicada ('repetida' declarada dos veces)
+~~   3. Tipo incompatible en declaración ('edad' int = "texto")
+~~   4. Aritmética sobre bafle_str ('saludo' + 1)
+~~   5. Función no declarada (llamada a 'noExiste()')
+~~   6. Arity incorrecto (sumarDos llamada con 3 argumentos)
+~~   7. Tipo de argumento incompatible (bafle_str donde se espera bafle_int)
+~~ ============================================================
+
+~~ --- Funciones válidas usadas en las pruebas ---
+func sumarDos(bafle_int a, bafle_int b) -> bafle_int {
+    retorna a + b;
+}
+
+func duplicar(bafle_int n) -> bafle_int {
+    retorna n * 2;
+}
+
+~~ --- Variables válidas de referencia ---
+set saludo como bafle_str = "Hola";
+set numero como bafle_int = 42;
+
+~~ ============================================================
+~~ ERROR 1: Variable no declarada
+~~ 'fantasma' nunca fue declarada — debe reportar:
+~~   [Error Semántico | línea N] variable 'fantasma' no ha sido declarada.
+~~ ============================================================
+show fantasma;
+
+~~ ============================================================
+~~ ERROR 2: Declaración duplicada en el mismo scope
+~~ 'repetida' ya existe — debe reportar:
+~~   [Error Semántico | línea N] variable 'repetida' ya fue declarada en este scope.
+~~ ============================================================
+set repetida como bafle_int = 10;
+set repetida como bafle_int = 20;
+
+~~ ============================================================
+~~ ERROR 3: Tipo incompatible en declaración
+~~ Se declara bafle_int pero se asigna un bafle_str — debe reportar:
+~~   [Error Semántico | línea N] tipo incompatible al declarar 'edad': se declaró bafle_int pero se asignó bafle_str.
+~~ ============================================================
+set edad como bafle_int = "tengo veinte años";
+
+~~ ============================================================
+~~ ERROR 4: Operación aritmética sobre bafle_str
+~~ No se puede sumar un string con un entero — debe reportar:
+~~   [Error Semántico | línea N] operación aritmética no permitida con tipo bafle_str.
+~~ ============================================================
+set resultado como bafle_int = saludo + 1;
+
+~~ ============================================================
+~~ ERROR 5: Llamada a función no declarada
+~~ 'noExiste' nunca fue definida — debe reportar:
+~~   [Error Semántico | línea N] función 'noExiste' no está declarada.
+~~ ============================================================
+show noExiste();
+
+~~ ============================================================
+~~ ERROR 6: Arity incorrecto (demasiados argumentos)
+~~ sumarDos espera 2 parámetros, se pasan 3 — debe reportar:
+~~   [Error Semántico | línea N] función 'sumarDos' espera 2 argumento(s), se pasaron 3.
+~~ ============================================================
+show sumarDos(1, 2, 3);
+
+~~ ============================================================
+~~ ERROR 7: Tipo de argumento incompatible
+~~ duplicar espera bafle_int, se pasa bafle_str — debe reportar:
+~~   [Error Semántico | línea N] argumento 1 de 'duplicar': tipo incompatible.
+~~ ============================================================
+show duplicar(saludo);
