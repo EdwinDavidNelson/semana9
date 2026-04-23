@@ -16,12 +16,19 @@ $(TARGET): $(SRCS)
 	$(CC) $(CFLAGS) -o $@ $(SRCS) -lfl
 
 run: $(TARGET)
-	./$(TARGET) demo.bafle
+	./$(TARGET) tests/demo.bafle
 
 test: $(TARGET)
-	./$(TARGET) test_functions.bafle
+	./$(TARGET) tests/test_functions.bafle
+
+test-all: $(TARGET)
+	@echo "=== Ejecutando todos los tests en tests/ ==="
+	@for f in tests/*.bafle; do \
+		echo "\n--- $$f ---"; \
+		./$(TARGET) $$f; \
+	done
 
 clean:
 	rm -f y.tab.c y.tab.h lex.yy.c $(TARGET)
 
-.PHONY: all run test clean
+.PHONY: all run test test-all clean
